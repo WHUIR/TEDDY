@@ -23,7 +23,7 @@ parser.add_argument('--dataset', default='beauty', help='Dataset name: movielens
 parser.add_argument('--log_file', default='log/', help='log dir path')
 parser.add_argument('--random_seed', type=int, default=2022, help='Random seed')  
 parser.add_argument('--max_len', type=int, default=50, help='The max length of sequence')
-parser.add_argument('--item_count', type=int, default=3533, help='The total number of items in raw dataset')  # ['movielens-1m': 3533, 'movielens-20m': 27198, 'Beauty': 95313]
+parser.add_argument('--item_count', type=int, default=3533, help='The total number of items in raw dataset') 
 parser.add_argument('--position_embedding_flag', type=str, default=False, help='Position embedding switch')
 # parser.add_argument('--user_count', type=int, default=None, help='The total number of users in raw dataset')
 parser.add_argument('--batch_size', type=int, default=1024, help='Batch Size')  ## 1024
@@ -185,80 +185,10 @@ def dist_len_pop_plot():
     plt.show()
 
 
-def dist_item_plot():
-    item_trend_dict = pickle.load(open('amazon_beauty_item_dist.pkl', 'rb'))
-    path_data = '../BERT4Rec/' + args.dataset + '/preprocess/dataset_5_5.pkl'
-    data_raw = pickle.load(open(path_data, 'rb'))
-
-    item_count_dict = {}
-    for seq_temp in data_raw['train'].values():
-        for item_temp in seq_temp:
-            if item_temp in item_count_dict:
-                item_count_dict[item_temp] += 1
-            else:
-                item_count_dict[item_temp] = 1
-    item_combine_dict = {}
-    for item_temp in item_count_dict:
-        if item_temp in item_trend_dict:
-            rat_temp = np.sum(item_trend_dict[item_temp])/len(item_trend_dict[item_temp])
-            item_combine_dict[item_temp] = (item_count_dict[item_temp], rat_temp)  
-    
-    x = np.array([temp[0] for temp in item_combine_dict.values()])
-    y = np.array([temp[1] for temp in item_combine_dict.values()])
-    
-    # plt.scatter(x, y, s=1, alpha=0.5)
-    # plt.xlim(0, 100)
-    # plt.savefig('dist_p.png')
-    # plt.show()
-    # quit()
-
-    gride_y = np.linspace(0, 1.1, 11)
-    gride_x = np.linspace(0, 101, 11)
-    # gride_x = np.append(gride_x, 500)
-    gride_num = {}
-    array_list = []
-    for i in range(len(gride_x)-1):
-        temp_y_list = []
-        for j in range(len(gride_y)-1):
-            count=0 
-            for point_temp in item_combine_dict.values():
-                if gride_x[i] <= point_temp[0] < gride_x[i+1]:
-                    temp_grid_x = gride_x[i]
-                    if gride_y[j] <= point_temp[1] < gride_y[j+1]:
-                        temp_grid_y = gride_y[j]
-                        count+=1
-                        if (temp_grid_x, temp_grid_y) not in gride_num:
-                            gride_num[(temp_grid_x, temp_grid_y)] = 1 
-                        else:
-                            gride_num[(temp_grid_x, temp_grid_y)] += 1 
-            temp_y_list.append(count)
-        array_list.append(temp_y_list)
-    array_back = np.array(array_list).transpose()
-    array_back = np.flipud(array_back)
-    # cmap = sns.diverging_palette(230, 20, as_cmap=True)
-    # Draw the heatmap with the mask and correct aspect ratio
-    # sns.heatmap(array_back, cmap=cmap, vmax=100, center=0, square=True, linewidths=.0000000000005, cbar_kws={"shrink": .5})
-
-    plt.scatter(x, y, s=1, alpha=0.5)
-    sns.kdeplot(x=x, y=y, fill=True, cmap='Spectral', cbar=True)
-    plt.xlim(0, 100)
-    plt.ylim(0, 1)
-    # sns.kdeplot(x=x, y=y, shade=True, bw="silverman", gridsize=5000, clip=(0, 500),  cmap="Purples")
-    # sns.kdeplot(x, y, shade=True, bw="silverman", gridsize=50000, clip=(0, 500),  cmap="Purples")
-
-    # Calculate the point density
-    # f, ax = plt.subplots(figsize=(6, 6))
-    # sns.scatterplot(x=x, y=y, s=5, color=".15")
-    # sns.histplot(x=x, y=y, bins=50, pthresh=.1, cmap="mako")
-    # sns.kdeplot(x=x, y=y, levels=5, color="w", linewidths=1)
-    plt.savefig('dist_3.png')
-    plt.show()
-
-
 def main():
     # item_count()
     # user_count()
-    path_data = 'datasets/' + args.dataset + '/dataset.pkl'
+    path_data = '../datasets/' + args.dataset + '/dataset.pkl'
     
     data_raw = pickle.load(open(path_data, 'rb'))
     args.item_count = len(data_raw['smap'])
